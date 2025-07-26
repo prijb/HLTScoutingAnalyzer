@@ -146,6 +146,8 @@ private:
   bool dst_pfscouting_singlemuon, dst_pfscouting_doublemuonnovtx, dst_pfscouting_doublemuonvtx, dst_pfscouting_doublemuonvtxmonitorjpsi, dst_pfscouting_doublemuonvtxmonitorz;
   // Extra triggers
   bool dst_pfscouting_doubleeg, dst_pfscouting_jetht, dst_pfscouting_axomedium, dst_pfscouting_axotight, dst_pfscouting_axovtight, dst_pfscouting_zerobias, dst_pfscouting_singlephotoneb, dst_pfscouting_cicadaloose, dst_pfscouting_cicadamedium, dst_pfscouting_cicadatight, dst_pfscouting_cicadavtight;
+  // Additional single muon monitor triggers
+  bool dst_pfscouting_singlemuonmonitorjpsi, dst_pfscouting_singlemuonmonitorz;
 
   // Ntuple branches
   UInt_t nScoutingMuonNoVtx;
@@ -308,6 +310,9 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("DST_PFScouting_CICADAMedium", &dst_pfscouting_cicadamedium);
   Events->Branch("DST_PFScouting_CICADATight", &dst_pfscouting_cicadatight);
   Events->Branch("DST_PFScouting_CICADAVTight", &dst_pfscouting_cicadavtight);
+  // Additional single muon monitor triggers
+  Events->Branch("DST_PFScouting_SingleMuonMonitorJPsi", &dst_pfscouting_singlemuonmonitorjpsi);
+  Events->Branch("DST_PFScouting_SingleMuonMonitorZ", &dst_pfscouting_singlemuonmonitorz);
 
 
   // Collections
@@ -472,42 +477,52 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   dst_pfscouting_cicadamedium = false;
   dst_pfscouting_cicadatight = false;
   dst_pfscouting_cicadavtight = false;
+  // Additional single muon monitor triggers
+  dst_pfscouting_singlemuonmonitorjpsi = false;
+  dst_pfscouting_singlemuonmonitorz = false;
+
   if (triggerResults.isValid()) {
     for(size_t i=0; i<triggerPathsVector.size(); i++){
       if(triggerPathsMap[triggerPathsVector[i]] == -1) continue;
       // Check each of the paths
-      if(triggerPathsVector[i] == "DST_PFScouting_SingleMuon"){
+      if(triggerPathsVector[i] == "DST_PFScouting_SingleMuon_v"){
         dst_pfscouting_singlemuon = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonNoVtx"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonNoVtx_v"){
         dst_pfscouting_doublemuonnovtx = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtx"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtx_v"){
         dst_pfscouting_doublemuonvtx = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorJPsi"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorJPsi_v"){
         dst_pfscouting_doublemuonvtxmonitorjpsi = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorZ"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorZ_v"){
         dst_pfscouting_doublemuonvtxmonitorz = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleEG"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleEG_v"){
         dst_pfscouting_doubleeg = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_JetHT"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_JetHT_v"){
         dst_pfscouting_jetht = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOMedium"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOMedium_v"){
         dst_pfscouting_axomedium = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOTight"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOTight_v"){
         dst_pfscouting_axotight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOVTight"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOVTight_v"){
         dst_pfscouting_axovtight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_ZeroBias"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_ZeroBias_v"){
         dst_pfscouting_zerobias = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_SinglePhotonEB"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_SinglePhotonEB_v"){
         dst_pfscouting_singlephotoneb = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADALoose"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADALoose_v"){
         dst_pfscouting_cicadaloose = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAMedium"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAMedium_v"){
         dst_pfscouting_cicadamedium = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADATight"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADATight_v"){
         dst_pfscouting_cicadatight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAVTight"){
+      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAVTight_v"){
         dst_pfscouting_cicadavtight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
+      }
+      // Additional single muon monitor triggers
+      else if(triggerPathsVector[i] == "DST_PFScouting_SingleMuonMonitorJPsi_v"){
+        dst_pfscouting_singlemuonmonitorjpsi = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
+      } else if(triggerPathsVector[i] == "DST_PFScouting_SingleMuonMonitorZ_v"){
+        dst_pfscouting_singlemuonmonitorz = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
       }
     }
   }
@@ -906,22 +921,24 @@ void Ntuplizer::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
   
   // Add the triggers you want to analyze
   triggerPathsVector = {
-    "DST_PFScouting_SingleMuon",
-    "DST_PFScouting_DoubleMuonNoVtx",
-    "DST_PFScouting_DoubleMuonVtx",
-    "DST_PFScouting_DoubleMuonVtxMonitorJPsi",
-    "DST_PFScouting_DoubleMuonVtxMonitorZ",
-    "DST_PFScouting_DoubleEG",
-    "DST_PFScouting_JetHT",
-    "DST_PFScouting_AXOMedium",
-    "DST_PFScouting_AXOTight",
-    "DST_PFScouting_AXOVTight",
-    "DST_PFScouting_ZeroBias",
-    "DST_PFScouting_SinglePhotonEB",
-    "DST_PFScouting_CICADALoose",
-    "DST_PFScouting_CICADAMedium",
-    "DST_PFScouting_CICADATight",
-    "DST_PFScouting_CICADAVTight"
+    "DST_PFScouting_SingleMuon_v",
+    "DST_PFScouting_DoubleMuonNoVtx_v",
+    "DST_PFScouting_DoubleMuonVtx_v",
+    "DST_PFScouting_DoubleMuonVtxMonitorJPsi_v",
+    "DST_PFScouting_DoubleMuonVtxMonitorZ_v",
+    "DST_PFScouting_DoubleEG_v",
+    "DST_PFScouting_JetHT_v",
+    "DST_PFScouting_AXOMedium_v",
+    "DST_PFScouting_AXOTight_v",
+    "DST_PFScouting_AXOVTight_v",
+    "DST_PFScouting_ZeroBias_v",
+    "DST_PFScouting_SinglePhotonEB_v",
+    "DST_PFScouting_CICADALoose_v",
+    "DST_PFScouting_CICADAMedium_v",
+    "DST_PFScouting_CICADATight_v",
+    "DST_PFScouting_CICADAVTight_v",
+    "DST_PFScouting_SingleMuonMonitorJPsi_v",
+    "DST_PFScouting_SingleMuonMonitorZ_v",
   };
 
   HLTConfigProvider hltConfig;
