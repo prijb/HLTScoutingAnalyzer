@@ -55,6 +55,11 @@ process.TFileService = cms.Service("TFileService",
   fileName = cms.string("output.root")
 )
 
+L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+
+process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
+process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", "HLTX")
+
 process.ntuplizer = cms.EDAnalyzer(
   'Ntuplizer',
   triggerResults = cms.InputTag("TriggerResults", "", "HLTX"),
@@ -63,6 +68,12 @@ process.ntuplizer = cms.EDAnalyzer(
   PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", "HLTX"),
   SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", "HLTX"),
   SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", "HLTX"),
+  doL1 = cms.bool(True),
+  l1Seeds = cms.vstring(L1Seeds),
+  AlgInputTag = cms.InputTag("gtStage2Digis"),
+  l1tAlgBlkInputTag = cms.InputTag("gtStage2Digis"),
+  l1tExtBlkInputTag = cms.InputTag("gtStage2Digis"),
+  ReadPrescalesFromFile = cms.bool( False ),
 )
 
-process.p = cms.Path(process.ntuplizer)
+process.p = cms.Path(process.gtStage2Digis + process.ntuplizer)

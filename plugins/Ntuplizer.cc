@@ -79,7 +79,7 @@
 // Trigger results
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
-#include "DataFormats/L1TGlobal/interface/GlobalAlgBlk.h"
+#include "L1Trigger/L1TGlobal/interface/L1TGlobalUtil.h"
 #include "HLTrigger/HLTcore/interface/TriggerExpressionData.h"
 #include "HLTrigger/HLTcore/interface/TriggerExpressionEvaluator.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
@@ -262,6 +262,16 @@ private:
   Int_t run;
   Int_t event;
   Int_t lumi;
+
+  // Addition: L1 seed bits
+  edm::InputTag                algInputTag_;
+  edm::InputTag                extInputTag_;
+  edm::EDGetToken              algToken_;
+  std::shared_ptr<l1t::L1TGlobalUtil> l1GtUtils_;
+
+  bool doL1_;
+  std::vector<std::string> l1Seeds_;
+  bool l1_singlemu5_bmtf, l1_singlemu11_sq14_bmtf, l1_singlemu13_sq14_bmtf;
 };
 
 //
@@ -282,8 +292,14 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   PVToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("PV"))),
   SVNoVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVNoVtx"))),
   SVVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVVtx"))),
-  ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))){
+  ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))),
+  doL1_(iConfig.getParameter<bool>("doL1")),
+  l1Seeds_(iConfig.getParameter<std::vector<std::string>>("l1Seeds")){
   
+  // Necessary for L1 seeds
+  algToken_ = consumes<BXVector<GlobalAlgBlk>>(iConfig.getParameter<edm::InputTag>("AlgInputTag"));
+  l1GtUtils_ = std::make_shared<l1t::L1TGlobalUtil>(iConfig, consumesCollector(), l1t::UseEventSetupIn::RunAndEvent);
+
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   Events = fs->make<TTree>("Events", "Events");
@@ -313,6 +329,13 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   // Additional single muon monitor triggers
   Events->Branch("DST_PFScouting_SingleMuonMonitorJPsi", &dst_pfscouting_singlemuonmonitorjpsi);
   Events->Branch("DST_PFScouting_SingleMuonMonitorZ", &dst_pfscouting_singlemuonmonitorz);
+
+  // Additional L1 bits
+  if (doL1_) {
+    Events->Branch("L1_SingleMu5_BMTF", &l1_singlemu5_bmtf);
+    Events->Branch("L1_SingleMu11_SQ14_BMTF", &l1_singlemu11_sq14_bmtf);
+    Events->Branch("L1_SingleMu13_SQ14_BMTF", &l1_singlemu13_sq14_bmtf);
+  }
 
 
   // Collections
@@ -460,6 +483,14 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   lumi = iEvent.eventAuxiliary().luminosityBlock();
 
   // Read out trigger decisions
+  // Fill with L1 decision
+  if (doL1_){
+    l1GtUtils_->retrieveL1(iEvent,iSetup,algToken_);
+    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu5_BMTF"), l1_singlemu5_bmtf);
+    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu11_SQ14_BMTF"), l1_singlemu11_sq14_bmtf);
+    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu13_SQ14_BMTF"), l1_singlemu13_sq14_bmtf);
+  }
+
   // NOTE: triggerPathsVector is filled in beginRun
   dst_pfscouting_singlemuon = false;
   dst_pfscouting_doublemuonnovtx = false;
