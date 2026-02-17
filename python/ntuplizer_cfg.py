@@ -10,10 +10,6 @@ params.register(
   VarParsing.varType.string,
   'Input file'
 )
-<<<<<<< HEAD
-
-=======
->>>>>>> d7fe281 (Updated trigger paths)
 params.register(
   'numEvents',
   1000,
