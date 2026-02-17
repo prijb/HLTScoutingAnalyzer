@@ -139,15 +139,19 @@ private:
   // Extra vertexing 
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbESToken_;
 
-  // Mapping trigger paths
-  std::vector<std::string> triggerPathsVector;
-  std::map<std::string, int> triggerPathsMap;
-  // Muon trigges
-  bool dst_pfscouting_singlemuon, dst_pfscouting_doublemuonnovtx, dst_pfscouting_doublemuonvtx, dst_pfscouting_doublemuonvtxmonitorjpsi, dst_pfscouting_doublemuonvtxmonitorz;
-  // Extra triggers
-  bool dst_pfscouting_doubleeg, dst_pfscouting_jetht, dst_pfscouting_axomedium, dst_pfscouting_axotight, dst_pfscouting_axovtight, dst_pfscouting_zerobias, dst_pfscouting_singlephotoneb, dst_pfscouting_cicadaloose, dst_pfscouting_cicadamedium, dst_pfscouting_cicadatight, dst_pfscouting_cicadavtight;
-  // Additional single muon monitor triggers
-  bool dst_pfscouting_singlemuonmonitorjpsi, dst_pfscouting_singlemuonmonitorz;
+  // HLT 
+  std::vector<std::string> hltPaths_;
+  std::map<std::string, int> hltPathIndex_;
+  std::vector<UChar_t> hltDecisions_;
+
+  // L1
+  bool doL1_;
+  edm::InputTag algInputTag_;
+  edm::InputTag extInputTag_;
+  edm::EDGetToken algToken_;
+  std::shared_ptr<l1t::L1TGlobalUtil> l1GtUtils_;
+  std::vector<std::string> l1Seeds_;
+  std::vector<UChar_t> l1Decisions_;
 
   // Ntuple branches
   UInt_t nScoutingMuonNoVtx;
@@ -157,6 +161,7 @@ private:
   std::vector<Float16_t> ScoutingMuonNoVtx_phiCorr;
   std::vector<Float16_t> ScoutingMuonNoVtx_m;
   std::vector<Int_t> ScoutingMuonNoVtx_charge;
+  std::vector<Float16_t> ScoutingMuonNoVtx_normalizedChi2;
   std::vector<Float16_t> ScoutingMuonNoVtx_trkchi2;
   std::vector<Float16_t> ScoutingMuonNoVtx_trkndof;
   std::vector<Float16_t> ScoutingMuonNoVtx_trkdxy;
@@ -177,6 +182,10 @@ private:
   std::vector<Float16_t> ScoutingMuonNoVtx_trkvy;
   std::vector<Float16_t> ScoutingMuonNoVtx_trkvz;
   std::vector<std::vector<Int_t>> ScoutingMuonNoVtx_vtxIndx;
+  std::vector<Bool_t> ScoutingMuonNoVtx_isGlobal;
+  std::vector<Bool_t> ScoutingMuonNoVtx_isTracker;
+  std::vector<Bool_t> ScoutingMuonNoVtx_isStandalone;
+
 
   UInt_t nScoutingMuonVtx;
   std::vector<Float16_t> ScoutingMuonVtx_pt;
@@ -185,6 +194,7 @@ private:
   std::vector<Float16_t> ScoutingMuonVtx_phiCorr;
   std::vector<Float16_t> ScoutingMuonVtx_m;
   std::vector<Int_t> ScoutingMuonVtx_charge;
+  std::vector<Float16_t> ScoutingMuonVtx_normalizedChi2;
   std::vector<Float16_t> ScoutingMuonVtx_trkchi2;
   std::vector<Float16_t> ScoutingMuonVtx_trkndof;
   std::vector<Float16_t> ScoutingMuonVtx_trkdxy;
@@ -205,6 +215,9 @@ private:
   std::vector<Float16_t> ScoutingMuonVtx_trkvy;
   std::vector<Float16_t> ScoutingMuonVtx_trkvz;
   std::vector<std::vector<Int_t>> ScoutingMuonVtx_vtxIndx;
+  std::vector<Bool_t> ScoutingMuonVtx_isGlobal;
+  std::vector<Bool_t> ScoutingMuonVtx_isTracker;
+  std::vector<Bool_t> ScoutingMuonVtx_isStandalone;
 
   // Vertices
   UInt_t nPV;
@@ -263,15 +276,6 @@ private:
   Int_t event;
   Int_t lumi;
 
-  // Addition: L1 seed bits
-  edm::InputTag                algInputTag_;
-  edm::InputTag                extInputTag_;
-  edm::EDGetToken              algToken_;
-  std::shared_ptr<l1t::L1TGlobalUtil> l1GtUtils_;
-
-  bool doL1_;
-  std::vector<std::string> l1Seeds_;
-  bool l1_singlemu5_bmtf, l1_singlemu11_sq14_bmtf, l1_singlemu13_sq14_bmtf;
 };
 
 //
@@ -293,6 +297,7 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   SVNoVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVNoVtx"))),
   SVVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVVtx"))),
   ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))),
+  hltPaths_(iConfig.getParameter<std::vector<std::string>>("hltPaths")),
   doL1_(iConfig.getParameter<bool>("doL1")),
   l1Seeds_(iConfig.getParameter<std::vector<std::string>>("l1Seeds")){
   
@@ -309,34 +314,20 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("lumi", &lumi, "lumi/I");
 
   // Trigger paths
-  Events->Branch("DST_PFScouting_SingleMuon", &dst_pfscouting_singlemuon);
-  Events->Branch("DST_PFScouting_DoubleMuonNoVtx", &dst_pfscouting_doublemuonnovtx);
-  Events->Branch("DST_PFScouting_DoubleMuonVtx", &dst_pfscouting_doublemuonvtx);
-  Events->Branch("DST_PFScouting_DoubleMuonVtxMonitorJPsi", &dst_pfscouting_doublemuonvtxmonitorjpsi);
-  Events->Branch("DST_PFScouting_DoubleMuonVtxMonitorZ", &dst_pfscouting_doublemuonvtxmonitorz);
-  // Extra triggers
-  Events->Branch("DST_PFScouting_DoubleEG", &dst_pfscouting_doubleeg);
-  Events->Branch("DST_PFScouting_JetHT", &dst_pfscouting_jetht);
-  Events->Branch("DST_PFScouting_AXOMedium", &dst_pfscouting_axomedium);
-  Events->Branch("DST_PFScouting_AXOTight", &dst_pfscouting_axotight);
-  Events->Branch("DST_PFScouting_AXOVTight", &dst_pfscouting_axovtight);
-  Events->Branch("DST_PFScouting_ZeroBias", &dst_pfscouting_zerobias);
-  Events->Branch("DST_PFScouting_SinglePhotonEB", &dst_pfscouting_singlephotoneb);
-  Events->Branch("DST_PFScouting_CICADALoose", &dst_pfscouting_cicadaloose);
-  Events->Branch("DST_PFScouting_CICADAMedium", &dst_pfscouting_cicadamedium);
-  Events->Branch("DST_PFScouting_CICADATight", &dst_pfscouting_cicadatight);
-  Events->Branch("DST_PFScouting_CICADAVTight", &dst_pfscouting_cicadavtight);
-  // Additional single muon monitor triggers
-  Events->Branch("DST_PFScouting_SingleMuonMonitorJPsi", &dst_pfscouting_singlemuonmonitorjpsi);
-  Events->Branch("DST_PFScouting_SingleMuonMonitorZ", &dst_pfscouting_singlemuonmonitorz);
-
-  // Additional L1 bits
-  if (doL1_) {
-    Events->Branch("L1_SingleMu5_BMTF", &l1_singlemu5_bmtf);
-    Events->Branch("L1_SingleMu11_SQ14_BMTF", &l1_singlemu11_sq14_bmtf);
-    Events->Branch("L1_SingleMu13_SQ14_BMTF", &l1_singlemu13_sq14_bmtf);
+  // HLT
+  hltDecisions_.assign(hltPaths_.size(), 0);
+  for (unsigned i = 0; i < hltPaths_.size(); ++i) {
+    std::string br = hltPaths_[i];
+    Events->Branch(br.c_str(), &hltDecisions_[i], (br + "/b").c_str());
   }
 
+  if (doL1_) {
+    l1Decisions_.assign(l1Seeds_.size(), 0);
+    for (unsigned i = 0; i < l1Seeds_.size(); ++i) {
+      std::string br = l1Seeds_[i];
+      Events->Branch(br.c_str(), &l1Decisions_[i], (br + "/b").c_str());
+    }
+  }
 
   // Collections
   Events->Branch("nScoutingMuonNoVtx", &nScoutingMuonNoVtx, "nScoutingMuonNoVtx/i");
@@ -346,6 +337,7 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("ScoutingMuonNoVtx_phiCorr", &ScoutingMuonNoVtx_phiCorr);
   Events->Branch("ScoutingMuonNoVtx_m", &ScoutingMuonNoVtx_m);
   Events->Branch("ScoutingMuonNoVtx_charge", &ScoutingMuonNoVtx_charge);
+  Events->Branch("ScoutingMuonNoVtx_normalizedChi2", &ScoutingMuonNoVtx_normalizedChi2);
   Events->Branch("ScoutingMuonNoVtx_trkchi2", &ScoutingMuonNoVtx_trkchi2);
   Events->Branch("ScoutingMuonNoVtx_trkndof", &ScoutingMuonNoVtx_trkndof);
   Events->Branch("ScoutingMuonNoVtx_trkdxy", &ScoutingMuonNoVtx_trkdxy);
@@ -366,6 +358,9 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("ScoutingMuonNoVtx_trkvy", &ScoutingMuonNoVtx_trkvy);
   Events->Branch("ScoutingMuonNoVtx_trkvz", &ScoutingMuonNoVtx_trkvz);
   Events->Branch("ScoutingMuonNoVtx_vtxIndx", &ScoutingMuonNoVtx_vtxIndx);
+  Events->Branch("ScoutingMuonNoVtx_isGlobal", &ScoutingMuonNoVtx_isGlobal);
+  Events->Branch("ScoutingMuonNoVtx_isTracker", &ScoutingMuonNoVtx_isTracker);
+  Events->Branch("ScoutingMuonNoVtx_isStandalone", &ScoutingMuonNoVtx_isStandalone);
 
   Events->Branch("nScoutingMuonVtx", &nScoutingMuonVtx, "nScoutingMuonVtx/i");
   Events->Branch("ScoutingMuonVtx_pt", &ScoutingMuonVtx_pt);
@@ -374,6 +369,7 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("ScoutingMuonVtx_phiCorr", &ScoutingMuonVtx_phiCorr);
   Events->Branch("ScoutingMuonVtx_m", &ScoutingMuonVtx_m);
   Events->Branch("ScoutingMuonVtx_charge", &ScoutingMuonVtx_charge);
+  Events->Branch("ScoutingMuonVtx_normalizedChi2", &ScoutingMuonVtx_normalizedChi2);
   Events->Branch("ScoutingMuonVtx_trkchi2", &ScoutingMuonVtx_trkchi2);
   Events->Branch("ScoutingMuonVtx_trkndof", &ScoutingMuonVtx_trkndof);
   Events->Branch("ScoutingMuonVtx_trkdxy", &ScoutingMuonVtx_trkdxy);
@@ -394,6 +390,9 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("ScoutingMuonVtx_trkvy", &ScoutingMuonVtx_trkvy);
   Events->Branch("ScoutingMuonVtx_trkvz", &ScoutingMuonVtx_trkvz);
   Events->Branch("ScoutingMuonVtx_vtxIndx", &ScoutingMuonVtx_vtxIndx);
+  Events->Branch("ScoutingMuonVtx_isGlobal", &ScoutingMuonVtx_isGlobal);
+  Events->Branch("ScoutingMuonVtx_isTracker", &ScoutingMuonVtx_isTracker);
+  Events->Branch("ScoutingMuonVtx_isStandalone", &ScoutingMuonVtx_isStandalone);
 
   // Vertices
   Events->Branch("nPV", &nPV, "nPV/i");
@@ -482,79 +481,28 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   event = iEvent.eventAuxiliary().event();
   lumi = iEvent.eventAuxiliary().luminosityBlock();
 
+  std::fill(hltDecisions_.begin(), hltDecisions_.end(), 0);
+  if (doL1_) std::fill(l1Decisions_.begin(), l1Decisions_.end(), 0);
+
   // Read out trigger decisions
   // Fill with L1 decision
   if (doL1_){
     l1GtUtils_->retrieveL1(iEvent,iSetup,algToken_);
-    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu5_BMTF"), l1_singlemu5_bmtf);
-    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu11_SQ14_BMTF"), l1_singlemu11_sq14_bmtf);
-    l1GtUtils_->getFinalDecisionByName(string("L1_SingleMu13_SQ14_BMTF"), l1_singlemu13_sq14_bmtf);
+    for (unsigned i = 0; i < l1Seeds_.size(); ++i) {
+      bool pass = false;
+      // If seed name not found, pass stays false
+      l1GtUtils_->getFinalDecisionByName(l1Seeds_[i], pass);
+      l1Decisions_[i] = pass ? 1 : 0;
+    }
   }
 
-  // NOTE: triggerPathsVector is filled in beginRun
-  dst_pfscouting_singlemuon = false;
-  dst_pfscouting_doublemuonnovtx = false;
-  dst_pfscouting_doublemuonvtx = false;
-  dst_pfscouting_doublemuonvtxmonitorjpsi = false;
-  dst_pfscouting_doublemuonvtxmonitorz = false;
-  dst_pfscouting_doubleeg = false;
-  dst_pfscouting_jetht = false;
-  dst_pfscouting_axomedium = false;
-  dst_pfscouting_axotight = false;
-  dst_pfscouting_axovtight = false;
-  dst_pfscouting_zerobias = false;
-  dst_pfscouting_singlephotoneb = false;
-  dst_pfscouting_cicadaloose = false;
-  dst_pfscouting_cicadamedium = false;
-  dst_pfscouting_cicadatight = false;
-  dst_pfscouting_cicadavtight = false;
-  // Additional single muon monitor triggers
-  dst_pfscouting_singlemuonmonitorjpsi = false;
-  dst_pfscouting_singlemuonmonitorz = false;
-
   if (triggerResults.isValid()) {
-    for(size_t i=0; i<triggerPathsVector.size(); i++){
-      if(triggerPathsMap[triggerPathsVector[i]] == -1) continue;
-      // Check each of the paths
-      if(triggerPathsVector[i] == "DST_PFScouting_SingleMuon_v"){
-        dst_pfscouting_singlemuon = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonNoVtx_v"){
-        dst_pfscouting_doublemuonnovtx = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtx_v"){
-        dst_pfscouting_doublemuonvtx = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorJPsi_v"){
-        dst_pfscouting_doublemuonvtxmonitorjpsi = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleMuonVtxMonitorZ_v"){
-        dst_pfscouting_doublemuonvtxmonitorz = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_DoubleEG_v"){
-        dst_pfscouting_doubleeg = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_JetHT_v"){
-        dst_pfscouting_jetht = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOMedium_v"){
-        dst_pfscouting_axomedium = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOTight_v"){
-        dst_pfscouting_axotight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_AXOVTight_v"){
-        dst_pfscouting_axovtight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_ZeroBias_v"){
-        dst_pfscouting_zerobias = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_SinglePhotonEB_v"){
-        dst_pfscouting_singlephotoneb = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADALoose_v"){
-        dst_pfscouting_cicadaloose = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAMedium_v"){
-        dst_pfscouting_cicadamedium = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADATight_v"){
-        dst_pfscouting_cicadatight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_CICADAVTight_v"){
-        dst_pfscouting_cicadavtight = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      }
-      // Additional single muon monitor triggers
-      else if(triggerPathsVector[i] == "DST_PFScouting_SingleMuonMonitorJPsi_v"){
-        dst_pfscouting_singlemuonmonitorjpsi = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      } else if(triggerPathsVector[i] == "DST_PFScouting_SingleMuonMonitorZ_v"){
-        dst_pfscouting_singlemuonmonitorz = triggerResults->accept(triggerPathsMap[triggerPathsVector[i]]);
-      }
+    for (unsigned i = 0; i < hltPaths_.size(); ++i) {
+      auto it = hltPathIndex_.find(hltPaths_[i]);
+      if (it == hltPathIndex_.end()) continue;
+      int idx = it->second;
+      if (idx < 0) continue;
+      hltDecisions_[i] = triggerResults->accept(idx) ? 1 : 0;
     }
   }
 
@@ -567,6 +515,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       ScoutingMuonNoVtx_phi.push_back(muonNoVtx.phi());
       ScoutingMuonNoVtx_m.push_back(muonNoVtx.m());
       ScoutingMuonNoVtx_charge.push_back(muonNoVtx.charge());
+      ScoutingMuonNoVtx_normalizedChi2.push_back(muonNoVtx.normalizedChi2());
       ScoutingMuonNoVtx_trkchi2.push_back(muonNoVtx.trk_chi2());
       ScoutingMuonNoVtx_trkndof.push_back(muonNoVtx.trk_ndof());
       ScoutingMuonNoVtx_trkdxy.push_back(muonNoVtx.trk_dxy());
@@ -587,6 +536,9 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       ScoutingMuonNoVtx_trkvy.push_back(muonNoVtx.trk_vy());
       ScoutingMuonNoVtx_trkvz.push_back(muonNoVtx.trk_vz());
       ScoutingMuonNoVtx_vtxIndx.push_back(muonNoVtx.vtxIndx());
+      ScoutingMuonNoVtx_isGlobal.push_back(muonNoVtx.isGlobalMuon());
+      ScoutingMuonNoVtx_isTracker.push_back(muonNoVtx.isTrackerMuon());
+      ScoutingMuonNoVtx_isStandalone.push_back(muonNoVtx.type() & 1 << 3);
 
       // Perform track extrapolation to the first SV in vtxIndx has nonzero size
       float muonNoVtx_phiCorr = muonNoVtx.phi(); 
@@ -643,6 +595,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       ScoutingMuonVtx_phi.push_back(muonVtx.phi());
       ScoutingMuonVtx_m.push_back(muonVtx.m());
       ScoutingMuonVtx_charge.push_back(muonVtx.charge());
+      ScoutingMuonVtx_normalizedChi2.push_back(muonVtx.normalizedChi2());
       ScoutingMuonVtx_trkchi2.push_back(muonVtx.trk_chi2());
       ScoutingMuonVtx_trkndof.push_back(muonVtx.trk_ndof());
       ScoutingMuonVtx_trkdxy.push_back(muonVtx.trk_dxy());
@@ -663,6 +616,9 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       ScoutingMuonVtx_trkvy.push_back(muonVtx.trk_vy());
       ScoutingMuonVtx_trkvz.push_back(muonVtx.trk_vz());
       ScoutingMuonVtx_vtxIndx.push_back(muonVtx.vtxIndx());
+      ScoutingMuonVtx_isGlobal.push_back(muonVtx.isGlobalMuon());
+      ScoutingMuonVtx_isTracker.push_back(muonVtx.isTrackerMuon());
+      ScoutingMuonVtx_isStandalone.push_back(muonVtx.type() & 1 << 3);
 
       // Perform track extrapolation to the first SV in vtxIndx has nonzero size
       float muonVtx_phiCorr = muonVtx.phi(); 
@@ -778,7 +734,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           //Muon matched
           nMuonMatch++;
           TLorentzVector scoutingmuonNoVtx_p4;
-          scoutingmuonNoVtx_p4.SetPtEtaPhiM(ScoutingMuonNoVtx_pt[i], ScoutingMuonNoVtx_eta[i], ScoutingMuonNoVtx_phiCorr[i], ScoutingMuonNoVtx_m[i]);
+          scoutingmuonNoVtx_p4.SetPtEtaPhiM(ScoutingMuonNoVtx_pt[i], ScoutingMuonNoVtx_eta[i], ScoutingMuonNoVtx_phiCorr[i], 0.10566);
           svNoVtx_p4 += scoutingmuonNoVtx_p4;
         }
       }
@@ -829,7 +785,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           //Muon matched
           nMuonMatch++;
           TLorentzVector scoutingmuonVtx_p4;
-          scoutingmuonVtx_p4.SetPtEtaPhiM(ScoutingMuonVtx_pt[i], ScoutingMuonVtx_eta[i], ScoutingMuonVtx_phiCorr[i], ScoutingMuonVtx_m[i]);
+          scoutingmuonVtx_p4.SetPtEtaPhiM(ScoutingMuonVtx_pt[i], ScoutingMuonVtx_eta[i], ScoutingMuonVtx_phiCorr[i], 0.10566);
           svVtx_p4 += scoutingmuonVtx_p4;
         }
       }
@@ -854,6 +810,7 @@ void Ntuplizer::clearVars(){
   ScoutingMuonNoVtx_phiCorr.clear();
   ScoutingMuonNoVtx_m.clear();
   ScoutingMuonNoVtx_charge.clear();
+  ScoutingMuonNoVtx_normalizedChi2.clear();
   ScoutingMuonNoVtx_trkchi2.clear();
   ScoutingMuonNoVtx_trkndof.clear();
   ScoutingMuonNoVtx_trkdxy.clear();
@@ -874,6 +831,9 @@ void Ntuplizer::clearVars(){
   ScoutingMuonNoVtx_trkvy.clear();
   ScoutingMuonNoVtx_trkvz.clear();
   ScoutingMuonNoVtx_vtxIndx.clear();
+  ScoutingMuonNoVtx_isGlobal.clear();
+  ScoutingMuonNoVtx_isTracker.clear();
+  ScoutingMuonNoVtx_isStandalone.clear();
 
 
   ScoutingMuonVtx_pt.clear();
@@ -882,6 +842,7 @@ void Ntuplizer::clearVars(){
   ScoutingMuonVtx_phiCorr.clear();
   ScoutingMuonVtx_m.clear();
   ScoutingMuonVtx_charge.clear();
+  ScoutingMuonVtx_normalizedChi2.clear();
   ScoutingMuonVtx_trkchi2.clear();
   ScoutingMuonVtx_trkndof.clear();
   ScoutingMuonVtx_trkdxy.clear();
@@ -902,6 +863,9 @@ void Ntuplizer::clearVars(){
   ScoutingMuonVtx_trkvy.clear();
   ScoutingMuonVtx_trkvz.clear();
   ScoutingMuonVtx_vtxIndx.clear();  
+  ScoutingMuonVtx_isGlobal.clear();
+  ScoutingMuonVtx_isTracker.clear();
+  ScoutingMuonVtx_isStandalone.clear();
 
   SVNoVtx_x.clear();
   SVNoVtx_y.clear(); 
@@ -949,45 +913,24 @@ void Ntuplizer::endJob() {
 }
 
 void Ntuplizer::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
-  
-  // Add the triggers you want to analyze
-  triggerPathsVector = {
-    "DST_PFScouting_SingleMuon_v",
-    "DST_PFScouting_DoubleMuonNoVtx_v",
-    "DST_PFScouting_DoubleMuonVtx_v",
-    "DST_PFScouting_DoubleMuonVtxMonitorJPsi_v",
-    "DST_PFScouting_DoubleMuonVtxMonitorZ_v",
-    "DST_PFScouting_DoubleEG_v",
-    "DST_PFScouting_JetHT_v",
-    "DST_PFScouting_AXOMedium_v",
-    "DST_PFScouting_AXOTight_v",
-    "DST_PFScouting_AXOVTight_v",
-    "DST_PFScouting_ZeroBias_v",
-    "DST_PFScouting_SinglePhotonEB_v",
-    "DST_PFScouting_CICADALoose_v",
-    "DST_PFScouting_CICADAMedium_v",
-    "DST_PFScouting_CICADATight_v",
-    "DST_PFScouting_CICADAVTight_v",
-    "DST_PFScouting_SingleMuonMonitorJPsi_v",
-    "DST_PFScouting_SingleMuonMonitorZ_v",
-  };
 
   HLTConfigProvider hltConfig;
   bool changedConfig = false;
-  hltConfig.init(iRun, iSetup, "HLTX", changedConfig);
+  hltConfig.init(iRun, iSetup, "HLT", changedConfig);
 
-  //Initialise keys for map
-  for(size_t i = 0; i < triggerPathsVector.size(); i++){
-    triggerPathsMap[triggerPathsVector[i]] = -1;
-  }
-  //Loop over all trigger paths and add trigger id as number to map
-  for(size_t i = 0; i < triggerPathsVector.size(); i++){
-    TString pattern(triggerPathsVector[i]);
-    for(size_t j = 0; j < hltConfig.triggerNames().size(); j++){
-      std::string pathName = hltConfig.triggerNames()[j];
-      if(TString(pathName).Contains(pattern)){
-        std::cout << "Found trigger path " << pathName << " with id " << j << std::endl;
-        triggerPathsMap[triggerPathsVector[i]] = j;
+  hltPathIndex_.clear();
+  for (const auto &p : hltPaths_) hltPathIndex_[p] = -1;
+
+  for (const auto &patternStr : hltPaths_) {
+    TString pattern(patternStr);
+    for (size_t j = 0; j < hltConfig.triggerNames().size(); ++j) {
+      const std::string &pathName = hltConfig.triggerNames()[j];
+      if (TString(pathName).Contains(pattern)) {
+        edm::LogPrint("Ntuplizer") << "Found HLT path " << pathName
+                                  << " matching " << patternStr
+                                  << " with index " << j;
+        hltPathIndex_[patternStr] = static_cast<int>(j);
+        break; // stop at first match
       }
     }
   }

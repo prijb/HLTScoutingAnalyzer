@@ -10,13 +10,23 @@ params.register(
   VarParsing.varType.string,
   'Input file'
 )
+<<<<<<< HEAD
 
+=======
+>>>>>>> d7fe281 (Updated trigger paths)
 params.register(
   'numEvents',
   1000,
   VarParsing.multiplicity.singleton,
   VarParsing.varType.int,
   'Number of events to process'
+)
+params.register(
+  'globalTag',
+  '150X_dataRun3_HLT_v1',
+  VarParsing.multiplicity.singleton,
+  VarParsing.varType.string,
+  'GlobalTag'
 )
 
 process = cms.Process('Ntuplizer')
@@ -48,26 +58,30 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 # Global tag
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '150X_dataRun3_HLT_v1', '')
+#process.GlobalTag = GlobalTag(process.GlobalTag, '150X_dataRun3_HLT_v1', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, params.globalTag, '')
 
 # File service
 process.TFileService = cms.Service("TFileService",
   fileName = cms.string("output.root")
 )
 
+# 2024 paths
+HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
 L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
 
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
-process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", "HLTX")
+process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", "HLT")
 
 process.ntuplizer = cms.EDAnalyzer(
   'Ntuplizer',
-  triggerResults = cms.InputTag("TriggerResults", "", "HLTX"),
-  muonsNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "", "HLTX"),
-  muonsVtx = cms.InputTag("hltScoutingMuonPackerVtx", "", "HLTX"),
-  PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", "HLTX"),
-  SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", "HLTX"),
-  SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", "HLTX"),
+  triggerResults = cms.InputTag("TriggerResults", "", "HLT"),
+  muonsNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "", "HLT"),
+  muonsVtx = cms.InputTag("hltScoutingMuonPackerVtx", "", "HLT"),
+  PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", "HLT"),
+  SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", "HLT"),
+  SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", "HLT"),
+  hltPaths = cms.vstring(HLTPaths),
   doL1 = cms.bool(True),
   l1Seeds = cms.vstring(L1Seeds),
   AlgInputTag = cms.InputTag("gtStage2Digis"),
