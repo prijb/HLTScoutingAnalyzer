@@ -136,6 +136,7 @@ private:
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> PVToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> SVNoVtxToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> SVVtxToken_;
+  const edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticleToken_;
   // Extra vertexing 
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbESToken_;
 
@@ -270,6 +271,16 @@ private:
   std::vector<Float16_t> SVVtx_mass;
   std::vector<Int_t> SVVtx_nMuon;
 
+  // GenPart
+  UInt_t nGenPart;
+  std::vector<Float16_t> GenPart_pt;
+  std::vector<Float16_t> GenPart_eta;
+  std::vector<Float16_t> GenPart_phi;
+  std::vector<Float16_t> GenPart_m;
+  std::vector<Int_t> GenPart_pdgId;
+  std::vector<Int_t> GenPart_status;
+  std::vector<Int_t> GenPart_genPartIdxMother;
+
   TTree* Events;
 
   Int_t run;
@@ -296,6 +307,7 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   PVToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("PV"))),
   SVNoVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVNoVtx"))),
   SVVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVVtx"))),
+  genParticleToken_(consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticles"))),
   ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))),
   hltPaths_(iConfig.getParameter<std::vector<std::string>>("hltPaths")),
   doL1_(iConfig.getParameter<bool>("doL1")),
@@ -442,6 +454,15 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("SVVtx_dlenSig", &SVVtx_dlenSig);
   Events->Branch("SVVtx_mass", &SVVtx_mass);
   Events->Branch("SVVtx_nMuon", &SVVtx_nMuon);
+
+  Events->Branch("nGenPart", &nGenPart);
+  Events->Branch("GenPart_pt", &GenPart_pt);
+  Events->Branch("GenPart_eta", &GenPart_eta);
+  Events->Branch("GenPart_phi", &GenPart_phi);
+  Events->Branch("GenPart_m", &GenPart_m);
+  Events->Branch("GenPart_pdgId", &GenPart_pdgId);
+  Events->Branch("GenPart_status", &GenPart_status);
+  Events->Branch("GenPart_genPartIdxMother", &GenPart_genPartIdxMother);
 };
 
 Ntuplizer::~Ntuplizer() {
@@ -474,6 +495,9 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<std::vector<Run3ScoutingVertex>> SVVtx;
   iEvent.getByToken(SVVtxToken_, SVVtx);
+
+  edm::Handle<std::vector<reco::GenParticle>> genParticles;
+  iEvent.getByToken(genParticleToken_, genParticles);
 
   const TransientTrackBuilder* theB = &iSetup.getData(ttbESToken_);
 
@@ -798,6 +822,26 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
   }
 
+  // Warning: Large gen multiplicity since no pruning done
+  nGenPart = 0;
+  if(genParticles.isValid()){
+    for(auto &genParticle: *genParticles){
+      GenPart_pt.push_back(genParticle.pt());
+      GenPart_eta.push_back(genParticle.eta());
+      GenPart_phi.push_back(genParticle.phi());
+      TLorentzVector genParticle_p4;
+      genParticle_p4.SetPtEtaPhiE(genParticle.pt(), genParticle.eta(), genParticle.phi(), genParticle.energy());
+      GenPart_m.push_back(genParticle_p4.M());
+      GenPart_pdgId.push_back(genParticle.pdgId());
+      GenPart_status.push_back(genParticle.status());
+      int GenPart_genPartIdxMother_temp = -1;
+      if(genParticle.numberOfMothers() > 0) GenPart_genPartIdxMother_temp = static_cast<int>(genParticle.mother(0)->pdgId());
+      GenPart_genPartIdxMother.push_back(GenPart_genPartIdxMother_temp);
+
+      nGenPart++;
+    }
+  }
+
   Events->Fill();
   clearVars();
 }
@@ -900,6 +944,14 @@ void Ntuplizer::clearVars(){
   SVVtx_dlenSig.clear();
   SVVtx_mass.clear();
   SVVtx_nMuon.clear();
+
+  GenPart_pt.clear();
+  GenPart_eta.clear();
+  GenPart_phi.clear();
+  GenPart_m.clear();
+  GenPart_pdgId.clear();
+  GenPart_status.clear();
+  GenPart_genPartIdxMother.clear();
 }
 
 // ------------ method called once each job just before starting event loop  ------------

@@ -24,6 +24,13 @@ params.register(
   VarParsing.varType.string,
   'GlobalTag'
 )
+params.register(
+  'process',
+  'HLT',
+  VarParsing.multiplicity.singleton,
+  VarParsing.varType.string,
+  'Process name'
+)
 
 process = cms.Process('Ntuplizer')
 params.parseArguments()
@@ -67,16 +74,17 @@ HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFS
 L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
 
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
-process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", "HLT")
+process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", params.process)
 
 process.ntuplizer = cms.EDAnalyzer(
   'Ntuplizer',
-  triggerResults = cms.InputTag("TriggerResults", "", "HLT"),
-  muonsNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "", "HLT"),
-  muonsVtx = cms.InputTag("hltScoutingMuonPackerVtx", "", "HLT"),
-  PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", "HLT"),
-  SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", "HLT"),
-  SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", "HLT"),
+  triggerResults = cms.InputTag("TriggerResults", "", params.process),
+  muonsNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "", params.process),
+  muonsVtx = cms.InputTag("hltScoutingMuonPackerVtx", "", params.process),
+  PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", params.process),
+  SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", params.process),
+  SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", params.process),
+  genParticles = cms.InputTag("genParticles", "", params.process),
   hltPaths = cms.vstring(HLTPaths),
   doL1 = cms.bool(True),
   l1Seeds = cms.vstring(L1Seeds),
