@@ -11,5 +11,6 @@
 <use name="TrackingTools/Records"/>
 <use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/VertexPrimitives"/>
+<use name="SimGeneral/HepPDTRecord"/>
 <use name="root"/>
 <flags EDM_PLUGIN="1"/>

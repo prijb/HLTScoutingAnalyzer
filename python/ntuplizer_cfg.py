@@ -76,6 +76,17 @@ L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_B
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
 process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", params.process)
 
+# Pruning gen particles
+# MINI
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+from PhysicsTools.PatAlgos.slimming.prunedGenParticles_cfi import prunedGenParticles
+process.prunedGenParticles = prunedGenParticles.clone()
+process.prunedGenParticles.src = cms.InputTag("genParticles", "", params.process)
+# NANO
+from PhysicsTools.NanoAOD.genparticles_cff import finalGenParticles
+process.finalGenParticles = finalGenParticles.clone()
+process.finalGenParticles.src = "prunedGenParticles"
+
 process.ntuplizer = cms.EDAnalyzer(
   'Ntuplizer',
   triggerResults = cms.InputTag("TriggerResults", "", params.process),
@@ -84,7 +95,7 @@ process.ntuplizer = cms.EDAnalyzer(
   PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", params.process),
   SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", params.process),
   SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", params.process),
-  genParticles = cms.InputTag("genParticles", "", params.process),
+  genParticles = cms.InputTag("prunedGenParticles"),
   hltPaths = cms.vstring(HLTPaths),
   doL1 = cms.bool(True),
   l1Seeds = cms.vstring(L1Seeds),
@@ -94,4 +105,6 @@ process.ntuplizer = cms.EDAnalyzer(
   ReadPrescalesFromFile = cms.bool( False ),
 )
 
-process.p = cms.Path(process.gtStage2Digis + process.ntuplizer)
+#process.p = cms.Path(process.gtStage2Digis + process.ntuplizer)
+process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.ntuplizer)
+#process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.finalGenParticles + process.ntuplizer)
