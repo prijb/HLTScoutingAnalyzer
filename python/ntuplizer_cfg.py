@@ -69,9 +69,13 @@ process.TFileService = cms.Service("TFileService",
   fileName = cms.string("output.root")
 )
 
-# 2023 paths (Dimuon parking path + HLT seeds added for reference)
-HLTPaths = ["DST_Run3_DoubleMu3_PFScoutingPixelTracking_v", "DST_Run3_EG30_PFScoutingPixelTracking_v", "DST_Run3_EG16_EG12_PFScoutingPixelTracking_v", "DST_Run3_JetHT_PFScoutingPixelTracking_v", "HLT_DoubleMu4_3_LowMass_v", "HLT_IsoMu24_v"]
-L1Seeds = ["L1_DoubleMu_15_7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18", "L1_DoubleMu4_SQ_OS_dR_Max1p2", "L1_DoubleMu4p5_SQ_OS_dR_Max1p2", "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4", "L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4", "L1_DoubleMu8_SQ", "L1_DoubleMu0er1p4_SQ_OS_dEta_Max1p2" , "L1_DoubleMu4er2p0_SQ_OS_dR_Max1p6" , "L1_DoubleMu5_SQ_OS_dR_Max1p6" , "L1_DoubleMu3er2p0_SQ_OS_dR_Max1p6" , "L1_DoubleMu0er1p5_SQ_OS_dEta_Max1p2" , "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p6" , "L1_DoubleMu0er1p4_OQ_OS_dEta_Max1p6" , "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p5"]
+# 2022 paths (Dimuon parking path + HLT seeds added for reference), GT: auto:phase1_2022_realistic
+HLTPaths = ["DST_Run3_PFScoutingPixelTracking_v", "HLT_DoubleMu4_3_LowMass_v", "HLT_IsoMu24_v", "HLT_Mu9_IP6_part0_v"]
+L1Seeds = ["L1_DoubleMu_15_7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18", "L1_DoubleMu4_SQ_OS_dR_Max1p2", "L1_DoubleMu4p5_SQ_OS_dR_Max1p2", "L1_DoubleMu0er1p4_SQ_OS_dEta_Max1p2",  "L1_DoubleMu4er2p0_SQ_OS_dR_Max1p6",  "L1_DoubleMu5_SQ_OS_dR_Max1p6",  "L1_DoubleMu3er2p0_SQ_OS_dR_Max1p6",  "L1_DoubleMu0er1p5_SQ_OS_dEta_Max1p2",  "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p6",  "L1_DoubleMu0er1p4_OQ_OS_dEta_Max1p6",  "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p5",  "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4",  "L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4"]
+
+# 2023 paths (Dimuon parking path + HLT seeds added for reference), GT: auto:phase1_2023_realistic
+#HLTPaths = ["DST_Run3_DoubleMu3_PFScoutingPixelTracking_v", "DST_Run3_EG30_PFScoutingPixelTracking_v", "DST_Run3_EG16_EG12_PFScoutingPixelTracking_v", "DST_Run3_JetHT_PFScoutingPixelTracking_v", "HLT_DoubleMu4_3_LowMass_v", "HLT_IsoMu24_v"]
+#L1Seeds = ["L1_DoubleMu_15_7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18", "L1_DoubleMu4_SQ_OS_dR_Max1p2", "L1_DoubleMu4p5_SQ_OS_dR_Max1p2", "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4", "L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4", "L1_DoubleMu8_SQ", "L1_DoubleMu0er1p4_SQ_OS_dEta_Max1p2" , "L1_DoubleMu4er2p0_SQ_OS_dR_Max1p6" , "L1_DoubleMu5_SQ_OS_dR_Max1p6" , "L1_DoubleMu3er2p0_SQ_OS_dR_Max1p6" , "L1_DoubleMu0er1p5_SQ_OS_dEta_Max1p2" , "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p6" , "L1_DoubleMu0er1p4_OQ_OS_dEta_Max1p6" , "L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p5"]
 
 # 2024 paths
 #HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
