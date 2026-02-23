@@ -132,10 +132,8 @@ private:
   // Tokens
   const edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> muonsNoVtxToken_;
-  const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> muonsVtxToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> PVToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> SVNoVtxToken_;
-  const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> SVVtxToken_;
   const edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticleToken_;
   // Extra vertexing 
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbESToken_;
@@ -187,39 +185,6 @@ private:
   std::vector<Bool_t> ScoutingMuonNoVtx_isTracker;
   std::vector<Bool_t> ScoutingMuonNoVtx_isStandalone;
 
-
-  UInt_t nScoutingMuonVtx;
-  std::vector<Float16_t> ScoutingMuonVtx_pt;
-  std::vector<Float16_t> ScoutingMuonVtx_eta;
-  std::vector<Float16_t> ScoutingMuonVtx_phi;
-  std::vector<Float16_t> ScoutingMuonVtx_phiCorr;
-  std::vector<Float16_t> ScoutingMuonVtx_m;
-  std::vector<Int_t> ScoutingMuonVtx_charge;
-  std::vector<Float16_t> ScoutingMuonVtx_normalizedChi2;
-  std::vector<Float16_t> ScoutingMuonVtx_trkchi2;
-  std::vector<Float16_t> ScoutingMuonVtx_trkndof;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdxy;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdz;
-  std::vector<Float16_t> ScoutingMuonVtx_trkqoverp;
-  std::vector<Float16_t> ScoutingMuonVtx_trklambda;
-  std::vector<Float16_t> ScoutingMuonVtx_trkpt;
-  std::vector<Float16_t> ScoutingMuonVtx_trkphi;
-  std::vector<Float16_t> ScoutingMuonVtx_trketa;
-  std::vector<Float16_t> ScoutingMuonVtx_trkqoverpError;
-  std::vector<Float16_t> ScoutingMuonVtx_trklambdaError;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdxyError;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdzError;
-  std::vector<Float16_t> ScoutingMuonVtx_trkphiError;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdsz;
-  std::vector<Float16_t> ScoutingMuonVtx_trkdszError;
-  std::vector<Float16_t> ScoutingMuonVtx_trkvx;
-  std::vector<Float16_t> ScoutingMuonVtx_trkvy;
-  std::vector<Float16_t> ScoutingMuonVtx_trkvz;
-  std::vector<std::vector<Int_t>> ScoutingMuonVtx_vtxIndx;
-  std::vector<Bool_t> ScoutingMuonVtx_isGlobal;
-  std::vector<Bool_t> ScoutingMuonVtx_isTracker;
-  std::vector<Bool_t> ScoutingMuonVtx_isStandalone;
-
   // Vertices
   UInt_t nPV;
   Float16_t PV_x;
@@ -251,25 +216,6 @@ private:
   std::vector<Float16_t> SVNoVtx_dlenSig;
   std::vector<Float16_t> SVNoVtx_mass;
   std::vector<Int_t> SVNoVtx_nMuon;
-
-  UInt_t nSVVtx;
-  std::vector<Float16_t> SVVtx_x;
-  std::vector<Float16_t> SVVtx_y;
-  std::vector<Float16_t> SVVtx_z;
-  std::vector<Float16_t> SVVtx_xError;
-  std::vector<Float16_t> SVVtx_yError;
-  std::vector<Float16_t> SVVtx_zError;
-  std::vector<Int_t> SVVtx_trksize;
-  std::vector<Float16_t> SVVtx_chi2;
-  std::vector<Float16_t> SVVtx_ndof;
-  std::vector<Bool_t> SVVtx_isvalidvtx;
-  // Calculated
-  std::vector<Float16_t> SVVtx_dxy;
-  std::vector<Float16_t> SVVtx_dxySig;
-  std::vector<Float16_t> SVVtx_dlen;
-  std::vector<Float16_t> SVVtx_dlenSig;
-  std::vector<Float16_t> SVVtx_mass;
-  std::vector<Int_t> SVVtx_nMuon;
 
   // GenPart
   UInt_t nGenPart;
@@ -303,10 +249,8 @@ private:
 Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   triggerResultsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
   muonsNoVtxToken_(consumes<std::vector<Run3ScoutingMuon>>(iConfig.getParameter<edm::InputTag>("muonsNoVtx"))),
-  muonsVtxToken_(consumes<std::vector<Run3ScoutingMuon>>(iConfig.getParameter<edm::InputTag>("muonsVtx"))),
   PVToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("PV"))),
   SVNoVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVNoVtx"))),
-  SVVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVVtx"))),
   genParticleToken_(consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticles"))),
   ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))),
   hltPaths_(iConfig.getParameter<std::vector<std::string>>("hltPaths")),
@@ -374,38 +318,6 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("ScoutingMuonNoVtx_isTracker", &ScoutingMuonNoVtx_isTracker);
   Events->Branch("ScoutingMuonNoVtx_isStandalone", &ScoutingMuonNoVtx_isStandalone);
 
-  Events->Branch("nScoutingMuonVtx", &nScoutingMuonVtx, "nScoutingMuonVtx/i");
-  Events->Branch("ScoutingMuonVtx_pt", &ScoutingMuonVtx_pt);
-  Events->Branch("ScoutingMuonVtx_eta", &ScoutingMuonVtx_eta);
-  Events->Branch("ScoutingMuonVtx_phi", &ScoutingMuonVtx_phi);
-  Events->Branch("ScoutingMuonVtx_phiCorr", &ScoutingMuonVtx_phiCorr);
-  Events->Branch("ScoutingMuonVtx_m", &ScoutingMuonVtx_m);
-  Events->Branch("ScoutingMuonVtx_charge", &ScoutingMuonVtx_charge);
-  Events->Branch("ScoutingMuonVtx_normalizedChi2", &ScoutingMuonVtx_normalizedChi2);
-  Events->Branch("ScoutingMuonVtx_trkchi2", &ScoutingMuonVtx_trkchi2);
-  Events->Branch("ScoutingMuonVtx_trkndof", &ScoutingMuonVtx_trkndof);
-  Events->Branch("ScoutingMuonVtx_trkdxy", &ScoutingMuonVtx_trkdxy);
-  Events->Branch("ScoutingMuonVtx_trkdz", &ScoutingMuonVtx_trkdz);
-  Events->Branch("ScoutingMuonVtx_trkqoverp", &ScoutingMuonVtx_trkqoverp);
-  Events->Branch("ScoutingMuonVtx_trklambda", &ScoutingMuonVtx_trklambda);
-  Events->Branch("ScoutingMuonVtx_trkpt", &ScoutingMuonVtx_trkpt);
-  Events->Branch("ScoutingMuonVtx_trkphi", &ScoutingMuonVtx_trkphi);
-  Events->Branch("ScoutingMuonVtx_trketa", &ScoutingMuonVtx_trketa);
-  Events->Branch("ScoutingMuonVtx_trkqoverpError", &ScoutingMuonVtx_trkqoverpError);
-  Events->Branch("ScoutingMuonVtx_trklambdaError", &ScoutingMuonVtx_trklambdaError);
-  Events->Branch("ScoutingMuonVtx_trkdxyError", &ScoutingMuonVtx_trkdxyError);
-  Events->Branch("ScoutingMuonVtx_trkdzError", &ScoutingMuonVtx_trkdzError);
-  Events->Branch("ScoutingMuonVtx_trkphiError", &ScoutingMuonVtx_trkphiError);
-  Events->Branch("ScoutingMuonVtx_trkdsz", &ScoutingMuonVtx_trkdsz);
-  Events->Branch("ScoutingMuonVtx_trkdszError", &ScoutingMuonVtx_trkdszError);
-  Events->Branch("ScoutingMuonVtx_trkvx", &ScoutingMuonVtx_trkvx);
-  Events->Branch("ScoutingMuonVtx_trkvy", &ScoutingMuonVtx_trkvy);
-  Events->Branch("ScoutingMuonVtx_trkvz", &ScoutingMuonVtx_trkvz);
-  Events->Branch("ScoutingMuonVtx_vtxIndx", &ScoutingMuonVtx_vtxIndx);
-  Events->Branch("ScoutingMuonVtx_isGlobal", &ScoutingMuonVtx_isGlobal);
-  Events->Branch("ScoutingMuonVtx_isTracker", &ScoutingMuonVtx_isTracker);
-  Events->Branch("ScoutingMuonVtx_isStandalone", &ScoutingMuonVtx_isStandalone);
-
   // Vertices
   Events->Branch("nPV", &nPV, "nPV/i");
   Events->Branch("PV_x", &PV_x, "PV_x/F");
@@ -437,24 +349,6 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("SVNoVtx_mass", &SVNoVtx_mass);
   Events->Branch("SVNoVtx_nMuon", &SVNoVtx_nMuon);
 
-  Events->Branch("nSVVtx", &nSVVtx, "nSVVtx/i");
-  Events->Branch("SVVtx_x", &SVVtx_x);
-  Events->Branch("SVVtx_y", &SVVtx_y);
-  Events->Branch("SVVtx_z", &SVVtx_z);
-  Events->Branch("SVVtx_xError", &SVVtx_xError);
-  Events->Branch("SVVtx_yError", &SVVtx_yError);
-  Events->Branch("SVVtx_zError", &SVVtx_zError);
-  Events->Branch("SVVtx_trksize", &SVVtx_trksize);
-  Events->Branch("SVVtx_chi2", &SVVtx_chi2);
-  Events->Branch("SVVtx_ndof", &SVVtx_ndof);
-  Events->Branch("SVVtx_isvalidvtx", &SVVtx_isvalidvtx);
-  Events->Branch("SVVtx_dxy", &SVVtx_dxy);
-  Events->Branch("SVVtx_dxySig", &SVVtx_dxySig);
-  Events->Branch("SVVtx_dlen", &SVVtx_dlen);
-  Events->Branch("SVVtx_dlenSig", &SVVtx_dlenSig);
-  Events->Branch("SVVtx_mass", &SVVtx_mass);
-  Events->Branch("SVVtx_nMuon", &SVVtx_nMuon);
-
   Events->Branch("nGenPart", &nGenPart);
   Events->Branch("GenPart_pt", &GenPart_pt);
   Events->Branch("GenPart_eta", &GenPart_eta);
@@ -484,17 +378,11 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<std::vector<Run3ScoutingMuon>> muonsNoVtx;
   iEvent.getByToken(muonsNoVtxToken_, muonsNoVtx);
 
-  edm::Handle<std::vector<Run3ScoutingMuon>> muonsVtx;
-  iEvent.getByToken(muonsVtxToken_, muonsVtx);
-
   edm::Handle<std::vector<Run3ScoutingVertex>> PV;
   iEvent.getByToken(PVToken_, PV);
 
   edm::Handle<std::vector<Run3ScoutingVertex>> SVNoVtx;
   iEvent.getByToken(SVNoVtxToken_, SVNoVtx);
-
-  edm::Handle<std::vector<Run3ScoutingVertex>> SVVtx;
-  iEvent.getByToken(SVVtxToken_, SVVtx);
 
   edm::Handle<std::vector<reco::GenParticle>> genParticles;
   iEvent.getByToken(genParticleToken_, genParticles);
@@ -611,86 +499,6 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }  
   }
 
-  nScoutingMuonVtx = 0;
-  if(muonsVtx.isValid()){
-    for(auto &muonVtx: *muonsVtx){
-      ScoutingMuonVtx_pt.push_back(muonVtx.pt());
-      ScoutingMuonVtx_eta.push_back(muonVtx.eta());
-      ScoutingMuonVtx_phi.push_back(muonVtx.phi());
-      ScoutingMuonVtx_m.push_back(muonVtx.m());
-      ScoutingMuonVtx_charge.push_back(muonVtx.charge());
-      ScoutingMuonVtx_normalizedChi2.push_back(muonVtx.normalizedChi2());
-      ScoutingMuonVtx_trkchi2.push_back(muonVtx.trk_chi2());
-      ScoutingMuonVtx_trkndof.push_back(muonVtx.trk_ndof());
-      ScoutingMuonVtx_trkdxy.push_back(muonVtx.trk_dxy());
-      ScoutingMuonVtx_trkdz.push_back(muonVtx.trk_dz());
-      ScoutingMuonVtx_trkqoverp.push_back(muonVtx.trk_qoverp());
-      ScoutingMuonVtx_trklambda.push_back(muonVtx.trk_lambda());
-      ScoutingMuonVtx_trkpt.push_back(muonVtx.trk_pt());
-      ScoutingMuonVtx_trkphi.push_back(muonVtx.trk_phi());
-      ScoutingMuonVtx_trketa.push_back(muonVtx.trk_eta());
-      ScoutingMuonVtx_trkqoverpError.push_back(muonVtx.trk_qoverpError());
-      ScoutingMuonVtx_trklambdaError.push_back(muonVtx.trk_lambdaError());
-      ScoutingMuonVtx_trkdxyError.push_back(muonVtx.trk_dxyError());
-      ScoutingMuonVtx_trkdzError.push_back(muonVtx.trk_dzError());
-      ScoutingMuonVtx_trkphiError.push_back(muonVtx.trk_phiError());
-      ScoutingMuonVtx_trkdsz.push_back(muonVtx.trk_dsz());
-      ScoutingMuonVtx_trkdszError.push_back(muonVtx.trk_dszError());
-      ScoutingMuonVtx_trkvx.push_back(muonVtx.trk_vx());
-      ScoutingMuonVtx_trkvy.push_back(muonVtx.trk_vy());
-      ScoutingMuonVtx_trkvz.push_back(muonVtx.trk_vz());
-      ScoutingMuonVtx_vtxIndx.push_back(muonVtx.vtxIndx());
-      ScoutingMuonVtx_isGlobal.push_back(muonVtx.isGlobalMuon());
-      ScoutingMuonVtx_isTracker.push_back(muonVtx.isTrackerMuon());
-      ScoutingMuonVtx_isStandalone.push_back(muonVtx.type() & 1 << 3);
-
-      // Perform track extrapolation to the first SV in vtxIndx has nonzero size
-      float muonVtx_phiCorr = muonVtx.phi(); 
-      //Build the muon track and then make it transient
-      reco::Track::Point v(muonVtx.trk_vx(), muonVtx.trk_vy(), muonVtx.trk_vz());
-      reco::Track::Vector p(
-        muonVtx.trk_pt()*std::cos(muonVtx.trk_phi()),
-        muonVtx.trk_pt()*std::sin(muonVtx.trk_phi()), 
-        muonVtx.trk_pt()*std::sinh(muonVtx.trk_eta())
-      );
-
-      double vec[15];
-      for (auto i = 0; i < 15; i++) vec[i] = 1.;
-      reco::TrackBase::CovarianceMatrix cov(vec, vec + 15);
-      cov(0, 0) = std::pow(muonVtx.trk_qoverpError(),2);
-      cov(0, 1) = muonVtx.trk_qoverp_lambda_cov();
-      cov(0, 2) = muonVtx.trk_qoverp_phi_cov();
-      cov(0, 3) = muonVtx.trk_qoverp_dxy_cov();
-      cov(0, 4) = muonVtx.trk_qoverp_dsz_cov();
-      cov(1, 1) = std::pow(muonVtx.trk_lambdaError(),2);
-      cov(1, 2) = muonVtx.trk_lambda_phi_cov();
-      cov(1, 3) = muonVtx.trk_lambda_dxy_cov();
-      cov(1, 4) = muonVtx.trk_lambda_dsz_cov();
-      cov(2, 2) = std::pow(muonVtx.trk_phiError(),2);
-      cov(2, 3) = muonVtx.trk_phi_dxy_cov();
-      cov(2, 4) = muonVtx.trk_phi_dsz_cov();
-      cov(3, 3) = std::pow(muonVtx.trk_dxyError(),2);
-      cov(3, 4) = muonVtx.trk_dxy_dsz_cov();
-      cov(4, 4) = std::pow(muonVtx.trk_dszError(),2);
-      reco::Track trk(muonVtx.trk_chi2(), muonVtx.trk_ndof(), v, p, muonVtx.charge(), cov);
-
-      reco::TransientTrack trans = theB->build(trk);
-
-      if(muonVtx.vtxIndx().size()>0){
-        auto vtxIndx = (muonVtx.vtxIndx())[0];
-        auto svVtx = (*SVVtx)[vtxIndx];
-        ROOT::Math::PtEtaPhiMVector muonVtx_p4(0, 0, 0, 0);
-        GlobalPoint svVtx_pos(svVtx.x(), svVtx.y(), svVtx.z());
-        TrajectoryStateClosestToPoint traj = trans.trajectoryStateClosestToPoint(svVtx_pos);
-        GlobalVector muonVtx_p3prop = traj.momentum();
-        muonVtx_phiCorr = muonVtx_p3prop.phi();
-      }
-
-      ScoutingMuonVtx_phiCorr.push_back(muonVtx_phiCorr);
-      nScoutingMuonVtx++;
-    }  
-  }
-
   // Keep a reco vertex object of the first PV
   nPV = 0;
   auto PV0Ptr = PV->begin();
@@ -771,57 +579,6 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
   }
 
-  nSVVtx = 0;
-  if(SVVtx.isValid()){
-    for(auto &svVtx: *SVVtx){
-      SVVtx_x.push_back(svVtx.x());
-      SVVtx_y.push_back(svVtx.y());
-      SVVtx_z.push_back(svVtx.z());
-      SVVtx_xError.push_back(svVtx.xError());
-      SVVtx_yError.push_back(svVtx.yError());
-      SVVtx_zError.push_back(svVtx.zError());
-      SVVtx_trksize.push_back(svVtx.tracksSize());
-      SVVtx_chi2.push_back(svVtx.chi2());
-      SVVtx_ndof.push_back(svVtx.ndof());
-      SVVtx_isvalidvtx.push_back(svVtx.isValidVtx());
-      
-      //Calculated for PV0
-      Point SVVtx_pos(svVtx.x(), svVtx.y(), svVtx.z());
-      Error3 SVVtx_err;
-      SVVtx_err(0, 0) = std::pow(svVtx.xError(), 2);
-      SVVtx_err(1, 1) = std::pow(svVtx.yError(), 2);
-      SVVtx_err(2, 2) = std::pow(svVtx.zError(), 2);
-      reco::Vertex SVVtx_cand(SVVtx_pos, SVVtx_err, svVtx.chi2(), svVtx.ndof(), svVtx.tracksSize());
-      Measurement1D dxy = vdistXY.distance(PV0, SVVtx_cand);
-      Measurement1D dlen = vdist.distance(PV0, SVVtx_cand);
-      SVVtx_dxy.push_back(dxy.value());
-      SVVtx_dxySig.push_back(dxy.significance());
-      SVVtx_dlen.push_back(dlen.value());
-      SVVtx_dlenSig.push_back(dlen.significance());
-
-      //Iterate over muons to find SV match
-      int nMuonMatch = 0;
-      float svVtx_mass = -1.;
-      TLorentzVector svVtx_p4;
-      for(UInt_t i=0; i<nScoutingMuonVtx; i++){
-        std::vector<int> scoutingmuonVtx_vtxIndx = ScoutingMuonVtx_vtxIndx[i];
-        if(std::find(scoutingmuonVtx_vtxIndx.begin(), scoutingmuonVtx_vtxIndx.end(), nSVVtx) != scoutingmuonVtx_vtxIndx.end()){
-          //Muon matched
-          nMuonMatch++;
-          TLorentzVector scoutingmuonVtx_p4;
-          scoutingmuonVtx_p4.SetPtEtaPhiM(ScoutingMuonVtx_pt[i], ScoutingMuonVtx_eta[i], ScoutingMuonVtx_phiCorr[i], 0.10566);
-          svVtx_p4 += scoutingmuonVtx_p4;
-        }
-      }
-      if(nMuonMatch>0) svVtx_mass = svVtx_p4.M();
-
-      SVVtx_mass.push_back(svVtx_mass);
-      SVVtx_nMuon.push_back(nMuonMatch);
-
-      nSVVtx++;
-    }
-  }
-
   // Warning: Large gen multiplicity since no pruning done
   nGenPart = 0;
   if(genParticles.isValid()){
@@ -879,38 +636,6 @@ void Ntuplizer::clearVars(){
   ScoutingMuonNoVtx_isTracker.clear();
   ScoutingMuonNoVtx_isStandalone.clear();
 
-
-  ScoutingMuonVtx_pt.clear();
-  ScoutingMuonVtx_eta.clear();
-  ScoutingMuonVtx_phi.clear();
-  ScoutingMuonVtx_phiCorr.clear();
-  ScoutingMuonVtx_m.clear();
-  ScoutingMuonVtx_charge.clear();
-  ScoutingMuonVtx_normalizedChi2.clear();
-  ScoutingMuonVtx_trkchi2.clear();
-  ScoutingMuonVtx_trkndof.clear();
-  ScoutingMuonVtx_trkdxy.clear();
-  ScoutingMuonVtx_trkdz.clear();
-  ScoutingMuonVtx_trkqoverp.clear();
-  ScoutingMuonVtx_trklambda.clear();
-  ScoutingMuonVtx_trkpt.clear();
-  ScoutingMuonVtx_trkphi.clear();
-  ScoutingMuonVtx_trketa.clear();
-  ScoutingMuonVtx_trkqoverpError.clear();
-  ScoutingMuonVtx_trklambdaError.clear();
-  ScoutingMuonVtx_trkdxyError.clear();
-  ScoutingMuonVtx_trkdzError.clear();
-  ScoutingMuonVtx_trkphiError.clear();
-  ScoutingMuonVtx_trkdsz.clear();
-  ScoutingMuonVtx_trkdszError.clear();  
-  ScoutingMuonVtx_trkvx.clear();
-  ScoutingMuonVtx_trkvy.clear();
-  ScoutingMuonVtx_trkvz.clear();
-  ScoutingMuonVtx_vtxIndx.clear();  
-  ScoutingMuonVtx_isGlobal.clear();
-  ScoutingMuonVtx_isTracker.clear();
-  ScoutingMuonVtx_isStandalone.clear();
-
   SVNoVtx_x.clear();
   SVNoVtx_y.clear(); 
   SVNoVtx_z.clear();
@@ -927,23 +652,6 @@ void Ntuplizer::clearVars(){
   SVNoVtx_dlenSig.clear();
   SVNoVtx_mass.clear();
   SVNoVtx_nMuon.clear();
-
-  SVVtx_x.clear();
-  SVVtx_y.clear();
-  SVVtx_z.clear();
-  SVVtx_xError.clear();
-  SVVtx_yError.clear(); 
-  SVVtx_zError.clear();
-  SVVtx_trksize.clear();
-  SVVtx_chi2.clear();
-  SVVtx_ndof.clear();
-  SVVtx_isvalidvtx.clear();
-  SVVtx_dxy.clear();
-  SVVtx_dxySig.clear();
-  SVVtx_dlen.clear();
-  SVVtx_dlenSig.clear();
-  SVVtx_mass.clear();
-  SVVtx_nMuon.clear();
 
   GenPart_pt.clear();
   GenPart_eta.clear();

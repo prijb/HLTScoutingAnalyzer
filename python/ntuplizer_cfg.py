@@ -69,9 +69,13 @@ process.TFileService = cms.Service("TFileService",
   fileName = cms.string("output.root")
 )
 
+# 2023 paths
+HLTPaths = ["DST_Run3_DoubleMu3_PFScoutingPixelTracking_v", "DST_Run3_EG30_PFScoutingPixelTracking_v", "DST_Run3_EG16_EG12_PFScoutingPixelTracking_v", "DST_Run3_JetHT_PFScoutingPixelTracking_v"]
+L1Seeds = ["L1_DoubleMu_15_7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7", "L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18", "L1_DoubleMu4_SQ_OS_dR_Max1p2", "L1_DoubleMu4p5_SQ_OS_dR_Max1p2", "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4", "L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4", "L1_DoubleMu8_SQ"]
+
 # 2024 paths
-HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
-L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+#HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
+#L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
 
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
 process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", params.process)
@@ -90,12 +94,10 @@ process.finalGenParticles.src = "prunedGenParticles"
 process.ntuplizer = cms.EDAnalyzer(
   'Ntuplizer',
   triggerResults = cms.InputTag("TriggerResults", "", params.process),
-  muonsNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "", params.process),
-  muonsVtx = cms.InputTag("hltScoutingMuonPackerVtx", "", params.process),
+  muonsNoVtx = cms.InputTag("hltScoutingMuonPacker", "", params.process),
   PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", params.process),
-  SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", params.process),
-  SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", params.process),
-  genParticles = cms.InputTag("prunedGenParticles"),
+  SVNoVtx = cms.InputTag("hltScoutingMuonPacker", "displacedVtx", params.process),
+  genParticles = cms.InputTag("finalGenParticles"),
   hltPaths = cms.vstring(HLTPaths),
   doL1 = cms.bool(True),
   l1Seeds = cms.vstring(L1Seeds),
@@ -106,5 +108,5 @@ process.ntuplizer = cms.EDAnalyzer(
 )
 
 #process.p = cms.Path(process.gtStage2Digis + process.ntuplizer)
-process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.ntuplizer)
-#process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.finalGenParticles + process.ntuplizer)
+#process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.ntuplizer)
+process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.finalGenParticles + process.ntuplizer)
