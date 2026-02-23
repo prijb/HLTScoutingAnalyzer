@@ -226,6 +226,9 @@ private:
   std::vector<Int_t> GenPart_pdgId;
   std::vector<Int_t> GenPart_status;
   std::vector<Int_t> GenPart_genPartIdxMother;
+  std::vector<Float16_t> GenPart_vertex_x;
+  std::vector<Float16_t> GenPart_vertex_y;
+  std::vector<Float16_t> GenPart_vertex_z;
 
   TTree* Events;
 
@@ -357,6 +360,9 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   Events->Branch("GenPart_pdgId", &GenPart_pdgId);
   Events->Branch("GenPart_status", &GenPart_status);
   Events->Branch("GenPart_genPartIdxMother", &GenPart_genPartIdxMother);
+  Events->Branch("GenPart_vertex_x", &GenPart_vertex_x);
+  Events->Branch("GenPart_vertex_y", &GenPart_vertex_y);
+  Events->Branch("GenPart_vertex_z", &GenPart_vertex_z);
 };
 
 Ntuplizer::~Ntuplizer() {
@@ -595,6 +601,11 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       if(genParticle.numberOfMothers() > 0) GenPart_genPartIdxMother_temp = static_cast<int>(genParticle.mother(0)->pdgId());
       GenPart_genPartIdxMother.push_back(GenPart_genPartIdxMother_temp);
 
+      // Adding vertex info
+      GenPart_vertex_x.push_back(genParticle.vertex().x());
+      GenPart_vertex_y.push_back(genParticle.vertex().y());
+      GenPart_vertex_z.push_back(genParticle.vertex().z());
+
       nGenPart++;
     }
   }
@@ -660,6 +671,9 @@ void Ntuplizer::clearVars(){
   GenPart_pdgId.clear();
   GenPart_status.clear();
   GenPart_genPartIdxMother.clear();
+  GenPart_vertex_x.clear();
+  GenPart_vertex_y.clear();
+  GenPart_vertex_z.clear();
 }
 
 // ------------ method called once each job just before starting event loop  ------------
