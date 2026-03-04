@@ -25,6 +25,13 @@ params.register(
   'GlobalTag'
 )
 params.register(
+  'year',
+  2025,
+  VarParsing.multiplicity.singleton,
+  VarParsing.varType.int,
+  'Year for trigger menu'
+)
+params.register(
   'process',
   'HLT',
   VarParsing.multiplicity.singleton,
@@ -69,19 +76,29 @@ process.TFileService = cms.Service("TFileService",
   fileName = cms.string("output.root")
 )
 
-# 2024 paths
-HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
-L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+
+# Paths
+if params.year == 2024:
+  HLTPaths = ["DST_PFScouting_DoubleMuon_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXONominal_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
+  L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+elif params.year == 2025:
+  HLTPaths = ["DST_PFScouting_DoubleMuonVtx_v", "DST_PFScouting_DoubleMuonNoVtx_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXOMedium_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_CICADALoose_v", "DST_PFScouting_CICADAMedium_v", "DST_PFScouting_CICADATight_v", "DST_PFScouting_CICADAVTight_v",  "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
+  L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+elif params.year == 2026:
+  HLTPaths = ["DST_PFScouting_DoubleMuonVtx_v", "DST_PFScouting_DoubleMuonNoVtx_v", "DST_PFScouting_DoubleEG_v", "DST_PFScouting_JetHT_v", "DST_PFScouting_AXOMedium_v", "DST_PFScouting_AXOTight_v", "DST_PFScouting_AXOVTight_v", "DST_PFScouting_CICADALoose_v", "DST_PFScouting_CICADAMedium_v", "DST_PFScouting_CICADATight_v", "DST_PFScouting_CICADAVTight_v",  "DST_PFScouting_SingleMuon_v", "DST_PFScouting_SinglePhotonEB_v", "DST_PFScouting_ZeroBias_v"]
+  L1Seeds = ["L1_SingleMu5_BMTF", "L1_SingleMu11_SQ14_BMTF", "L1_SingleMu13_SQ14_BMTF"]
+else:
+  raise ValueError(f"Invalid year {params.year}. Only 2024, 2025 and 2026 accepted. Use pre2024 branch for years before")
 
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
 process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" , "", params.process)
 
-# Pruning gen particles
+# Pruning gen particles (note, even in reHLT'd samples, genParticles will be associated with process HLT)
 # MINI
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 from PhysicsTools.PatAlgos.slimming.prunedGenParticles_cfi import prunedGenParticles
 process.prunedGenParticles = prunedGenParticles.clone()
-process.prunedGenParticles.src = cms.InputTag("genParticles", "", params.process)
+process.prunedGenParticles.src = cms.InputTag("genParticles", "", "HLT")
 # NANO
 from PhysicsTools.NanoAOD.genparticles_cff import finalGenParticles
 process.finalGenParticles = finalGenParticles.clone()
@@ -95,7 +112,7 @@ process.ntuplizer = cms.EDAnalyzer(
   PV = cms.InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx", params.process),
   SVNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx", params.process),
   SVVtx = cms.InputTag("hltScoutingMuonPackerVtx", "displacedVtx", params.process),
-  genParticles = cms.InputTag("prunedGenParticles"),
+  genParticles = cms.InputTag("finalGenParticles"),
   hltPaths = cms.vstring(HLTPaths),
   doL1 = cms.bool(True),
   l1Seeds = cms.vstring(L1Seeds),
@@ -106,5 +123,5 @@ process.ntuplizer = cms.EDAnalyzer(
 )
 
 #process.p = cms.Path(process.gtStage2Digis + process.ntuplizer)
-process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.ntuplizer)
-#process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.finalGenParticles + process.ntuplizer)
+#process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.ntuplizer)
+process.p = cms.Path(process.gtStage2Digis + process.prunedGenParticles + process.finalGenParticles + process.ntuplizer)

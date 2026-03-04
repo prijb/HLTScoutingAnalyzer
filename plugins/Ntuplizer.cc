@@ -141,6 +141,7 @@ private:
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbESToken_;
 
   // HLT 
+  std::string hltProcessName_;
   std::vector<std::string> hltPaths_;
   std::map<std::string, int> hltPathIndex_;
   std::vector<UChar_t> hltDecisions_;
@@ -309,6 +310,7 @@ Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig):
   SVVtxToken_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("SVVtx"))),
   genParticleToken_(consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticles"))),
   ttbESToken_(esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))),
+  hltProcessName_(iConfig.getParameter<edm::InputTag>("triggerResults").process()),
   hltPaths_(iConfig.getParameter<std::vector<std::string>>("hltPaths")),
   doL1_(iConfig.getParameter<bool>("doL1")),
   l1Seeds_(iConfig.getParameter<std::vector<std::string>>("l1Seeds")){
@@ -968,7 +970,7 @@ void Ntuplizer::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
   HLTConfigProvider hltConfig;
   bool changedConfig = false;
-  hltConfig.init(iRun, iSetup, "HLT", changedConfig);
+  hltConfig.init(iRun, iSetup, hltProcessName_, changedConfig);
 
   hltPathIndex_.clear();
   for (const auto &p : hltPaths_) hltPathIndex_[p] = -1;
